@@ -35,13 +35,15 @@ protected $middlewareGroups = [
 php artisan vendor:publish --provider="JustBetter\Http3EarlyHints\ServiceProvider"
 ```
 
+**Note:** `send_103` defaults to `false`, this is because it isn't actually supported widely yet. Currently only [FrankenPHP supports Early Hints natively](https://frankenphp.dev/docs/early-hints/).
+default behaviour is adding the link headers to the 200 response which e.g. [Cloudflare turns into early hints](https://developers.cloudflare.com/cache/advanced-configuration/early-hints/#generate-early-hints).
 
 ## Usage
 
 When you route a request through the `AddHttp3EarlyHints` middleware, the response is scanned for any `link`, `script` or `img` tags that could benefit from being loaded using Early Hints.
 These assets will be added to the `Link` header before sending the response to the client. Easy!
 
-**Note:** To push an image asset, it must have one of the following extensions: `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tiff` or `svg` and not have loading="lazy"
+**Note:** To push an image asset, it must have one of the following extensions: `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tiff` or `svg` and not have `loading="lazy"`
 
 ## Testing
 
