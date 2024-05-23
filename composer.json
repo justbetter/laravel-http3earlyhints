@@ -5,7 +5,7 @@
         "laravel",
         "laravel-http3earlyhints",
         "serverpush",
-        "http/3",
+        "http3",
         "early hints"
     ],
     "homepage": "https://github.com/justbetter/laravel-http3earlyhints",
