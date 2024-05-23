@@ -80,15 +80,16 @@ class AddHttp3EarlyHints
     /**
      * We only start crawling once the response has already been sent to the client in order to reduce impact on performance.
      */
-    public function terminate(Request $request, Response $response): void
+    public function terminate(Request $request, \Symfony\Component\HttpFoundation\Response $response): void
     {
         $this->handleGeneratingLinkHeaders($request, $response);
     }
 
-    public function handleGeneratingLinkHeaders(Request $request, Response $response)
+    public function handleGeneratingLinkHeaders(Request $request, \Symfony\Component\HttpFoundation\Response $response)
     {
         if (
-            $response->isRedirection()
+            ! $response instanceof Response
+            || $response->isRedirection()
             || ! $response->isSuccessful()
             || $this->skipCurrentRequest
         ) {
@@ -197,17 +198,21 @@ class AddHttp3EarlyHints
             return Str::contains(strtoupper($url), $extension);
         });
 
-        if ($url && ! $type) {
-            $type = 'fetch';
-        }
-
         if (! preg_match('%^(https?:)?//%i', $url)) {
             $basePath = $this->getConfig('base_path', '/');
-            $url = $basePath.ltrim($url, $basePath);
+            $url = rtrim($basePath.ltrim($url, $basePath), '/');
+        }
+
+        if ($rel === 'preconnect' && $url) {
+            return "<{$url}>; rel={$rel}";
         }
 
         if (! in_array($rel, ['preload', 'modulepreload'])) {
             $rel = 'preload';
+        }
+
+        if ($url && ! $type) {
+            $type = 'fetch';
         }
 
         return is_null($type) ? null : "<{$url}>; rel={$rel}; as={$type}".($type == 'font' ? '; crossorigin' : '');
