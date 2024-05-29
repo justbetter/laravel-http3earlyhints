@@ -221,10 +221,10 @@ class AddHttp3EarlyHints
     /**
      * Add Link Header
      */
-    private function addLinkHeader(Response $response, mixed $link): Response
+    private function addLinkHeader(\Symfony\Component\HttpFoundation\Response $response, mixed $link): Response
     {
         $link = trim(collect($link)->implode(','));
-        if (! $link) {
+        if (! $link || !$response instanceof Response) {
             return $response;
         }
         if ($response->headers->get('Link')) {
