@@ -80,12 +80,12 @@ class AddHttp3EarlyHints
     /**
      * We only start crawling once the response has already been sent to the client in order to reduce impact on performance.
      */
-    public function terminate(Request $request, \Symfony\Component\HttpFoundation\Response $response): void
+    public function terminate(Request $request, SymfonyResponse $response): void
     {
         $this->handleGeneratingLinkHeaders($request, $response);
     }
 
-    public function handleGeneratingLinkHeaders(Request $request, \Symfony\Component\HttpFoundation\Response $response)
+    public function handleGeneratingLinkHeaders(Request $request, SymfonyResponse $response)
     {
         if (
             ! $response instanceof Response
@@ -115,7 +115,7 @@ class AddHttp3EarlyHints
         return config('http3earlyhints.'.$key, $default);
     }
 
-    protected function generateLinkHeaders(Response $response, ?int $limit = null, ?int $sizeLimit = null, ?array $excludeKeywords = null): Collection
+    protected function generateLinkHeaders(SymfonyResponse $response, ?int $limit = null, ?int $sizeLimit = null, ?array $excludeKeywords = null): Collection
     {
         $excludeKeywords = array_filter($excludeKeywords ?? $this->getConfig('exclude_keywords', []));
         $headers = $this->fetchLinkableNodes($response)
@@ -159,7 +159,7 @@ class AddHttp3EarlyHints
     /**
      * Get the DomCrawler instance.
      */
-    protected function getCrawler(Response $response): Crawler
+    protected function getCrawler(SymfonyResponse $response): Crawler
     {
         return $this->crawler ??= new Crawler($response->getContent());
     }
@@ -167,7 +167,7 @@ class AddHttp3EarlyHints
     /**
      * Get all nodes we are interested in pushing.
      */
-    protected function fetchLinkableNodes(Response $response): Collection
+    protected function fetchLinkableNodes(SymfonyResponse $response): Collection
     {
         $crawler = $this->getCrawler($response);
 
@@ -221,7 +221,7 @@ class AddHttp3EarlyHints
     /**
      * Add Link Header
      */
-    private function addLinkHeader(\Symfony\Component\HttpFoundation\Response $response, mixed $link): Response
+    private function addLinkHeader(SymfonyResponse $response, mixed $link): SymfonyResponse
     {
         $link = trim(collect($link)->implode(','));
         if (! $link || !$response instanceof Response) {
