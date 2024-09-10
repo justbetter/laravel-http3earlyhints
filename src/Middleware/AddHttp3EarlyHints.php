@@ -76,12 +76,12 @@ class AddHttp3EarlyHints
     /**
      * We only start crawling once the response has already been sent to the client in order to reduce impact on performance.
      */
-    public function terminate(Request $request, \Symfony\Component\HttpFoundation\Response $response): void
+    public function terminate(Request $request, SymfonyResponse $response): void
     {
         $this->handleGeneratingLinkHeaders($request, $response);
     }
 
-    public function handleGeneratingLinkHeaders(Request $request, \Symfony\Component\HttpFoundation\Response $response)
+    public function handleGeneratingLinkHeaders(Request $request, SymfonyResponse $response)
     {
         if (
             ! $response instanceof Response
@@ -102,7 +102,7 @@ class AddHttp3EarlyHints
         return $linkHeaders;
     }
 
-    protected function generateLinkHeaders(Request $request, Response $response, ?int $sizeLimit = null): LinkHeaders
+    protected function generateLinkHeaders(Request $request, SymfonyResponse $response, ?int $sizeLimit = null): LinkHeaders
     {
         $this->linkHeaders = new LinkHeaders();
         GenerateEarlyHints::dispatch($this->linkHeaders, $request, $response);
@@ -123,7 +123,7 @@ class AddHttp3EarlyHints
     /**
      * Add Link Header
      */
-    private function addLinkHeaders(\Symfony\Component\HttpFoundation\Response $response, LinkHeaders $linkHeaders): Response
+    private function addLinkHeaders(SymfonyResponse $response, LinkHeaders $linkHeaders): SymfonyResponse
     {
         $link = $linkHeaders->__toString();
         if (! $link || !$response instanceof Response) {
