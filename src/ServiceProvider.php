@@ -3,6 +3,8 @@
 namespace JustBetter\Http3EarlyHints;
 
 use Illuminate\Support\ServiceProvider as LaravelServiceProvider;
+use JustBetter\Http3EarlyHints\Listeners\AddDefaultHeaders;
+use JustBetter\Http3EarlyHints\Listeners\AddFromBody;
 
 class ServiceProvider extends LaravelServiceProvider
 {
@@ -18,5 +20,8 @@ class ServiceProvider extends LaravelServiceProvider
         $this->publishes([
             __DIR__.'/config.php' => config_path('http3earlyhints.php'),
         ], 'config');
+
+        AddDefaultHeaders::register();
+        AddFromBody::register();
     }
 }

@@ -27,7 +27,7 @@ class AddHttp3EarlyHintsTest extends TestCase
         $request = $this->getNewRequest();
 
         $limit = 75;
-        $response = $this->middleware->handle($request, $this->getNext('pageWithCssAndJs'), null, $limit, []);
+        $response = $this->middleware->handle($request, $this->getNext('pageWithCssAndJs'), $limit, []);
 
         $this->assertTrue($this->isServerPushResponse($response));
         $this->assertTrue(strlen($response->headers->get('link')) <= $limit);
@@ -38,8 +38,8 @@ class AddHttp3EarlyHintsTest extends TestCase
     public function it_will_not_add_excluded_asset()
     {
         $request = $this->getNewRequest();
-
-        $response = $this->middleware->handle($request, $this->getNext('pageWithCssAndJs'), null, null, ['thing']);
+        config(['http3earlyhints' => ['exclude_keywords' => ['thing']]]);
+        $response = $this->middleware->handle($request, $this->getNext('pageWithCssAndJs'));
 
         $this->assertTrue($this->isServerPushResponse($response));
         $this->assertTrue(! Str::contains($response->headers, 'thing'));
@@ -64,7 +64,7 @@ class AddHttp3EarlyHintsTest extends TestCase
         $response = $this->middleware->handle($request, $this->getNext('pageWithCss'));
 
         $this->assertTrue($this->isServerPushResponse($response));
-        $this->assertStringEndsWith('as=style', $response->headers->get('link'));
+        $this->assertStringEndsWith('as="style"', $response->headers->get('link'));
     }
 
     /** @test */
@@ -75,7 +75,7 @@ class AddHttp3EarlyHintsTest extends TestCase
         $response = $this->middleware->handle($request, $this->getNext('pageWithJs'));
 
         $this->assertTrue($this->isServerPushResponse($response));
-        $this->assertStringEndsWith('as=script', $response->headers->get('link'));
+        $this->assertStringEndsWith('as="script"', $response->headers->get('link'));
     }
 
     /** @test */
@@ -86,7 +86,7 @@ class AddHttp3EarlyHintsTest extends TestCase
         $response = $this->middleware->handle($request, $this->getNext('pageWithImages'));
 
         $this->assertTrue($this->isServerPushResponse($response));
-        $this->assertStringEndsWith('as=image', $response->headers->get('link'));
+        $this->assertStringEndsWith('as="image"', $response->headers->get('link'));
         $this->assertCount(7, explode(',', $response->headers->get('link')));
     }
 
@@ -98,7 +98,7 @@ class AddHttp3EarlyHintsTest extends TestCase
         $response = $this->middleware->handle($request, $this->getNext('pageWithSVGObject'));
 
         $this->assertTrue($this->isServerPushResponse($response));
-        $this->assertStringEndsWith('as=image', $response->headers->get('link'));
+        $this->assertStringEndsWith('as="image"', $response->headers->get('link'));
         $this->assertCount(1, explode(',', $response->headers->get('link')));
     }
 
@@ -110,8 +110,8 @@ class AddHttp3EarlyHintsTest extends TestCase
         $response = $this->middleware->handle($request, $this->getNext('pageWithFetchPreload'));
 
         $this->assertTrue($this->isServerPushResponse($response));
-        $this->assertStringContainsString('</api/resource>; rel=preload', $response->headers->get('link'));
-        $this->assertStringEndsWith('as=script', $response->headers->get('link'));
+        $this->assertStringContainsString('</api/resource>; rel="preload"', $response->headers->get('link'));
+        $this->assertStringEndsWith('as="script"', $response->headers->get('link'));
     }
 
     /** @test */
@@ -121,7 +121,7 @@ class AddHttp3EarlyHintsTest extends TestCase
 
         $response = $this->middleware->handle($request, $this->getNext('pageWithCss'));
 
-        $this->assertEquals('</css/test.css>; rel=preload; as=style', $response->headers->get('link'));
+        $this->assertEquals('</css/test.css>; rel="preload"; as="style"', $response->headers->get('link'));
     }
 
     /** @test */
@@ -158,17 +158,6 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_limit_count_of_links()
-    {
-        $request = $this->getNewRequest();
-        $limit = 2;
-
-        $response = $this->middleware->handle($request, $this->getNext('pageWithImages'), $limit);
-
-        $this->assertCount($limit, explode(',', $response->headers->get('link')));
-    }
-
-    /** @test */
     public function it_will_append_to_header_if_already_present()
     {
         $request = $this->getNewRequest();
@@ -184,7 +173,7 @@ class AddHttp3EarlyHintsTest extends TestCase
 
         $this->assertTrue($this->isServerPushResponse($response));
         $this->assertStringStartsWith('<https://example.com/en>; rel="alternate"; hreflang="en",', $response->headers->get('link'));
-        $this->assertStringEndsWith('as=style', $response->headers->get('link'));
+        $this->assertStringEndsWith('as="style"', $response->headers->get('link'));
     }
 
     /**

@@ -45,6 +45,10 @@ These assets will be added to the `Link` header before sending the response to t
 
 **Note:** To push an image asset, it must have one of the following extensions: `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tiff` or `svg` and not have `loading="lazy"`
 
+### Advanced usage
+
+If the automatic detection isn't enough for you, you can listen for GenerateEarlyHints events, and manually add new links.
+
 ## Testing
 
 ``` bash

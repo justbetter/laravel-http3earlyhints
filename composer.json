@@ -20,6 +20,8 @@
     "require": {
         "php" : "^8.0",
         "laravel/framework": "^10.0|^11.0",
+        "fig/link-util": "^1.2",
+        "psr/link": "^1.1.1 || ^2.0.1",
         "symfony/dom-crawler": "^6.0|^7.0",
         "symfony/css-selector": "^6.0|^7.0"
     },
