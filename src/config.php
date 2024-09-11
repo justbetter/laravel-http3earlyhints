@@ -21,6 +21,7 @@ return [
             '',
         ]
     ),
+    /** Keywords that if they exist in the url will exclude link header */
     'exclude_keywords' => array_merge(
         explode(',', env('EARLY_HINTS_EXCLUDE_KEYWORDS', '')),
         []
