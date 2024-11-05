@@ -101,7 +101,8 @@ class LinkHeaders
         $handledHashes = [];
 
         foreach ($this->getLinkProvider()->getLinks() as $link) {
-            $hash = md5(serialize($link));
+            /** @var Link $link */
+            $hash = md5($link->getHref(), serialize($link->getRels()));
             if (! in_array($hash, $handledHashes)) {
                 $handledHashes[] = $hash;
 

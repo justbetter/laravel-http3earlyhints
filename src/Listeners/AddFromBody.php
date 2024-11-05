@@ -19,13 +19,15 @@ class AddFromBody
         $excludeKeywords = array_filter(config('http3earlyhints.exclude_keywords', []));
         $headers = $this->fetchLinkableNodes($event->response)
             ->flatMap(function ($element) {
-                [$src, $href, $data, $rel, $type] = $element;
+                [$src, $href, $data, $rel, $type, $crossorigin, $as, $fetchpriority, $integrity, $referrerpolicy, $imagesizes, $imagesrcset] = $element;
                 $rel = $type === 'module' ? 'modulepreload' : $rel;
 
+                $attributes = array_filter(@compact('crossorigin', 'as', 'fetchpriority', 'integrity', 'referrerpolicy', 'imagesizes', 'imagesrcset'));
+
                 return [
-                    $this->buildLinkHeader($src ?? '', $rel ?? null),
-                    $this->buildLinkHeader($href ?? '', $rel ?? null),
-                    $this->buildLinkHeader($data ?? '', $rel ?? null),
+                    $this->buildLinkHeader($href ?? '', $rel ?? null, $attributes),
+                    $this->buildLinkHeader($src ?? '', $rel ?? null, $attributes),
+                    $this->buildLinkHeader($data ?? '', $rel ?? null, $attributes),
                 ];
             })
             ->filter(function (?Link $value) use ($excludeKeywords) {
@@ -60,13 +62,16 @@ class AddFromBody
     {
         $crawler = $this->getCrawler($response);
 
-        return collect($crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')->extract(['src', 'href', 'data', 'rel', 'type']));
+        return collect(
+            $crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')
+                ->extract(['src', 'href', 'data', 'rel', 'type', 'crossorigin', 'as', 'fetchpriority', 'integrity', 'referrerpolicy', 'imagesizes', 'imagesrcset'])
+        );
     }
 
     /**
      * Build out header string based on asset extension.
      */
-    private function buildLinkHeader(string $url, ?string $rel = 'preload'): ?Link
+    private function buildLinkHeader(string $url, ?string $rel = 'preload', ?array $attributes = []): ?Link
     {
         $linkTypeMap = [
             '.CSS' => 'style',
@@ -102,12 +107,18 @@ class AddFromBody
 
         $link = new Link($rel, $url);
 
+        foreach ($attributes as $key => $value) {
+            $link = $link->withAttribute($key, $value);
+        }
+
         if ($rel === 'preconnect' && $url) {
             return $link;
         }
 
-        $link = $link->withAttribute('as', $type ?? 'fetch');
-        if ($type === 'font') {
+        if (empty($attributes['as'])) {
+            $link = $link->withAttribute('as', $type ?? 'fetch');
+        }
+        if ($type === 'font' && empty($attributes['crossorigin'])) {
             $link = $link->withAttribute('crossorigin', true);
         }
 
