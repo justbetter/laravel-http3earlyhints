@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use JustBetter\Http3EarlyHints\Data\LinkHeaders;
 use JustBetter\Http3EarlyHints\Events\GenerateEarlyHints;
@@ -48,7 +47,7 @@ class AddHttp3EarlyHints
         }
 
         if (config('http3earlyhints.set_103')) {
-            $response = new Response();
+            $response = new Response;
             $this->addLinkHeaders($response, $linkHeaders);
             $response->sendHeaders(103);
 
@@ -104,7 +103,7 @@ class AddHttp3EarlyHints
 
     protected function generateLinkHeaders(Request $request, SymfonyResponse $response, ?int $sizeLimit = null): LinkHeaders
     {
-        $this->linkHeaders = new LinkHeaders();
+        $this->linkHeaders = new LinkHeaders;
         GenerateEarlyHints::dispatch($this->linkHeaders, $request, $response);
 
         $this->linkHeaders->makeUnique();
@@ -114,7 +113,7 @@ class AddHttp3EarlyHints
 
         while (strlen($headersText) > $sizeLimit) {
             $this->linkHeaders->setLinkProvider($this->linkHeaders->getLinkProvider()->withOutLink(Arr::last($this->linkHeaders->getLinkProvider()->getLinks())));
-            $headersText =  $this->linkHeaders->__toString();
+            $headersText = $this->linkHeaders->__toString();
         }
 
         return $this->linkHeaders;
@@ -126,7 +125,7 @@ class AddHttp3EarlyHints
     private function addLinkHeaders(SymfonyResponse $response, LinkHeaders $linkHeaders): SymfonyResponse
     {
         $link = $linkHeaders->__toString();
-        if (! $link || !$response instanceof Response) {
+        if (! $link || ! $response instanceof Response) {
             return $response;
         }
         if ($response->headers->get('Link')) {

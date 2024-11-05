@@ -15,6 +15,7 @@ $ composer require justbetter/laravel-http3earlyhints
 ```
 
 Next you must add the `\JustBetter\Http3EarlyHints\Middleware\AddHttp3EarlyHints`-middleware to the kernel. Adding it to the web group is recommeneded as API's do not have assets to push.
+### Laravel <11
 ```php
 // app/Http/Kernel.php
 
@@ -27,6 +28,23 @@ protected $middlewareGroups = [
     ],
     ...
 ];
+```
+
+### Laravel >=11
+```php
+// bootstrap/app.php
+
+...
+->withMiddleware(function (Middleware $middleware) {
+    ...
+    $middleware->appendToGroup('web', [
+        \JustBetter\Http3EarlyHints\Middleware\AddHttp3EarlyHints::class,
+    ]);
+    // Or
+    // $middleware->append(\JustBetter\Http3EarlyHints\Middleware\AddHttp3EarlyHints::class);
+    ...
+})
+...
 ```
 
 ## Publish config
@@ -43,11 +61,42 @@ default behaviour is adding the link headers to the 200 response which e.g. [Clo
 When you route a request through the `AddHttp3EarlyHints` middleware, the response is scanned for any `link`, `script` or `img` tags that could benefit from being loaded using Early Hints.
 These assets will be added to the `Link` header before sending the response to the client. Easy!
 
-**Note:** To push an image asset, it must have one of the following extensions: `bmp`, `gif`, `jpg`, `jpeg`, `png`, `tiff` or `svg` and not have `loading="lazy"`
+**Note:** To push an image asset, it must have one of the following extensions: `bmp`, `gif`, `jpg`, `jpeg`, `png`, `svg`, `tiff` or `webp` and not have `loading="lazy"`
 
 ### Advanced usage
 
-If the automatic detection isn't enough for you, you can listen for GenerateEarlyHints events, and manually add new links.
+If the automatic detection isn't enough for you, you can listen for the `GenerateEarlyHints` event, and manually add/remove/change new links.
+
+#### Detailed default behaviour
+
+The information on [usage](#usage) is simplified, there are many checks done to make sure we don't preload the wrong things.
+
+Early hints only support rel=preconnect and rel=preload [source](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/103#browser_compatibility)
+
+We automatically transform any rel that is not `preconnect` or `preload` into `preload`, so your `<link rel="modulepreload" href="app.js">` will get preloaded with early hints. And get more detailed information once your server starts sending it's response.
+
+##### Link
+
+Any link elements which do **not** have rel=
+- icon
+- canonical
+- manifest
+- alternative
+
+##### Script
+
+Script tags will automatically get preloaded **if** it does not have an `async` or `defer` attribute attached to it.
+
+##### Img
+
+Img tags will automatically get preloaded when it does not have `loading="lazy"` and it does not exist within a picture tag.
+
+If it is within a picture tag we may be dealing with mutliple `srcset`s or `type`s, and thus cannot determine which file the browser will need.
+So we will not preload these images.
+
+##### Object
+
+If your html object tag contains `data=""` it will preload it.
 
 ## Testing
 

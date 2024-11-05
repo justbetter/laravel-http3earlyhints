@@ -45,7 +45,6 @@ class AddFromBody
         $event->linkHeaders->addLink($headers->toArray());
     }
 
-
     /**
      * Get the DomCrawler instance.
      */
@@ -61,7 +60,7 @@ class AddFromBody
     {
         $crawler = $this->getCrawler($response);
 
-        return collect($crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="manifest"]):not([rel="alternate"]), script[src], *:not(picture)>img[src]:not([loading="lazy"]), object[data]')->extract(['src', 'href', 'data', 'rel', 'type']));
+        return collect($crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')->extract(['src', 'href', 'data', 'rel', 'type']));
     }
 
     /**
@@ -84,7 +83,7 @@ class AddFromBody
             '.WOFF2' => 'font',
         ];
 
-        if (!$url) {
+        if (! $url) {
             return null;
         }
 
@@ -97,7 +96,7 @@ class AddFromBody
             $url = rtrim($basePath.ltrim($url, $basePath), '/');
         }
 
-        if (! in_array($rel, ['preload', 'modulepreload', 'preconnect'])) {
+        if (! in_array($rel, ['preload', 'preconnect'])) {
             $rel = 'preload';
         }
 

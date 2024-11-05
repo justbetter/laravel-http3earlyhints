@@ -15,7 +15,7 @@ class LinkHeaders
 
     public function __construct(?EvolvableLinkProviderInterface $linkProvider = null)
     {
-        $this->linkProvider = $linkProvider ?? new GenericLinkProvider();
+        $this->linkProvider = $linkProvider ?? new GenericLinkProvider;
     }
 
     public function getLinkProvider(): EvolvableLinkProviderInterface
@@ -30,18 +30,20 @@ class LinkHeaders
         return $this;
     }
 
-    public function addLink(EvolvableLinkInterface|string|array $uri, string|array|null $rel = null, null|array $attributes = []): static
+    public function addLink(EvolvableLinkInterface|string|array $uri, string|array|null $rel = null, ?array $attributes = []): static
     {
         if (is_array($uri)) {
             foreach ($uri as $data) {
                 $data = Arr::Wrap($data);
                 $this->addLink(...$data);
             }
+
             return $this;
         }
 
         if ($uri instanceof EvolvableLinkInterface) {
             $this->setLinkProvider($this->getLinkProvider()->withLink($uri));
+
             return $this;
         }
 
@@ -67,7 +69,7 @@ class LinkHeaders
         return $this;
     }
 
-    public function addFromString(string $link) : static
+    public function addFromString(string $link): static
     {
         $links = explode(',', trim($link));
         foreach ($links as $link) {
@@ -75,13 +77,14 @@ class LinkHeaders
             $uri = trim(array_shift($parts), '<>');
             $rel = null;
             $attributes = [];
-            foreach($parts as $part) {
+            foreach ($parts as $part) {
                 preg_match('/(?<key>[^=]+)(?:="?(?<value>.*)"?)?/', trim($part), $matches);
                 $key = $matches['key'];
                 $value = $matches['value'] ?? null;
 
-                if($key === 'rel') {
+                if ($key === 'rel') {
                     $rel = $value;
+
                     continue;
                 }
                 $attributes[$key] = $value ?? true;
@@ -99,8 +102,9 @@ class LinkHeaders
 
         foreach ($this->getLinkProvider()->getLinks() as $link) {
             $hash = md5(serialize($link));
-            if (!in_array($hash, $handledHashes)) {
+            if (! in_array($hash, $handledHashes)) {
                 $handledHashes[] = $hash;
+
                 continue;
             }
 
@@ -135,7 +139,7 @@ class LinkHeaders
                 continue;
             }
 
-            if (!\is_bool($value)) {
+            if (! \is_bool($value)) {
                 $attributes[] = sprintf('%s="%s"', $key, $value);
 
                 continue;

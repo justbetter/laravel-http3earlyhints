@@ -9,7 +9,7 @@ class AddDefaultHeaders
 {
     public function handle(GenerateEarlyHints $event)
     {
-        foreach(config('http3earlyhints.default_headers', []) as $header) {
+        foreach (config('http3earlyhints.default_headers', []) as $header) {
             $event->linkHeaders->addFromString($header);
         }
     }

@@ -12,7 +12,7 @@ class AddHttp3EarlyHintsTest extends TestCase
 
     public function setUp(): void
     {
-        $this->middleware = new AddHttp3EarlyHints();
+        $this->middleware = new AddHttp3EarlyHints;
         parent::setUp();
     }
 
@@ -27,7 +27,7 @@ class AddHttp3EarlyHintsTest extends TestCase
         $request = $this->getNewRequest();
 
         $limit = 75;
-        $response = $this->middleware->handle($request, $this->getNext('pageWithCssAndJs'), $limit, []);
+        $response = $this->middleware->handle($request, $this->getNext('pageWithCssAndJs'), $limit);
 
         $this->assertTrue($this->isServerPushResponse($response));
         $this->assertTrue(strlen($response->headers->get('link')) <= $limit);
