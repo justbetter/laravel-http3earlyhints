@@ -22,6 +22,11 @@ class AddFromBody
                 [$src, $href, $data, $rel, $type, $crossorigin, $as, $fetchpriority, $integrity, $referrerpolicy, $imagesizes, $imagesrcset] = $element;
                 $rel = $type === 'module' ? 'modulepreload' : $rel;
 
+                if ($rel === 'modulepreload' && ! $crossorigin) {
+                    // On module or modulepreload the crossorigin is REQUIRED https://github.com/whatwg/html/issues/1888
+                    $crossorigin = 'anonymous';
+                }
+
                 $attributes = array_filter(@compact('crossorigin', 'as', 'fetchpriority', 'integrity', 'referrerpolicy', 'imagesizes', 'imagesrcset'));
 
                 return [
@@ -119,7 +124,7 @@ class AddFromBody
             $link = $link->withAttribute('as', $type ?? 'fetch');
         }
         if ($type === 'font' && empty($attributes['crossorigin'])) {
-            $link = $link->withAttribute('crossorigin', true);
+            $link = $link->withAttribute('crossorigin', 'anonymous');
         }
 
         return $link;
