@@ -22,7 +22,7 @@ class AddFromBody
                 [$src, $href, $data, $rel, $type, $crossorigin, $as, $fetchpriority, $integrity, $referrerpolicy, $imagesizes, $imagesrcset] = $element;
                 $rel = $type === 'module' ? 'modulepreload' : $rel;
 
-                if ($rel === 'modulepreload' && ! $crossorigin) {
+                if ($rel === 'modulepreload' && empty($crossorigin)) {
                     // On module or modulepreload the crossorigin is REQUIRED https://github.com/whatwg/html/issues/1888
                     $crossorigin = 'anonymous';
                 }

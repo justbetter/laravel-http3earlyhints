@@ -79,6 +79,30 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
+    public function it_will_return_a_js_link_header_with_crossorigin_for_js_module()
+    {
+        $request = $this->getNewRequest();
+
+        $response = $this->middleware->handle($request, $this->getNext('pageWithJsModule'));
+
+        $this->assertTrue($this->isServerPushResponse($response));
+        $this->assertStringEndsWith('as="script"', $response->headers->get('link'));
+        $this->assertStringContainsString('crossorigin="anonymous"', $response->headers->get('link'));
+    }
+
+    /** @test */
+    public function it_will_return_a_js_link_header_with_use_credentials_crossorigin_for_js_module()
+    {
+        $request = $this->getNewRequest();
+
+        $response = $this->middleware->handle($request, $this->getNext('pageWithJsCrossoriginModule'));
+
+        $this->assertTrue($this->isServerPushResponse($response));
+        $this->assertStringEndsWith('as="script"', $response->headers->get('link'));
+        $this->assertStringContainsString('crossorigin="use-credentials"', $response->headers->get('link'));
+    }
+
+    /** @test */
     public function it_will_return_an_image_link_header_for_images()
     {
         $request = $this->getNewRequest();
