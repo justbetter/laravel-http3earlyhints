@@ -7,6 +7,11 @@ return [
      */
     'cache_duration' => env('EARLY_HINTS_CACHE_DURATION', 864000 /* 24h */),
     'cache_driver' => env('EARLY_HINTS_CACHE_DRIVER', null),
+    /**
+     * We always crawl the response after the response has been sent.
+     * If we do not have it in cache, should we crawl during the request to always send link headers?
+     */
+    'generate_during_request' => env('EARLY_HINTS_GENERATE_DURING_REQUEST', true),
     /** Wether to send the 103. This means we do not need an external party to handle early hints but is currently only supported by FrankenPHP */
     'send_103' => env('EARLY_HINTS_SEND_103', false) && \function_exists('headers_send'),
     /** Size limit in bytes */

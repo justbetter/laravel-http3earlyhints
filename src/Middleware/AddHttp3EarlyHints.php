@@ -25,7 +25,7 @@ class AddHttp3EarlyHints
     {
         $lastPath = Str::afterLast($request->path(), '/');
         if (
-            $request->isJson()
+            $request->format() !== 'html'
             || (str_contains($lastPath, '.') && ! in_array(Str::afterLast($lastPath, '.'), config('http3earlyhints.extensions', ['', 'php', 'html'])))
         ) {
             $this->skipCurrentRequest = true;
@@ -38,6 +38,9 @@ class AddHttp3EarlyHints
         $linkHeaders = Cache::store(config('http3earlyhints.cache_driver'))->get('earlyhints-'.md5($request->url()));
         if (! $linkHeaders) {
             $response = $next($request);
+            if (! config('http3earlyhints.generate_during_request', true)) {
+                return $response;
+            }
             $linkHeaders = $this->handleGeneratingLinkHeaders($request, $response);
             if ($linkHeaders) {
                 $this->addLinkHeaders($response, $linkHeaders);
