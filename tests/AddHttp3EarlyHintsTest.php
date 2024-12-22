@@ -10,7 +10,7 @@ class AddHttp3EarlyHintsTest extends TestCase
 {
     protected ?AddHttp3EarlyHints $middleware;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         $this->middleware = new AddHttp3EarlyHints;
         parent::setUp();
