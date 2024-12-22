@@ -49,8 +49,9 @@ class AddHttp3EarlyHints
             return $response;
         }
 
-        if (config('http3earlyhints.set_103')) {
+        if (config('http3earlyhints.send_103')) {
             $response = new Response;
+            $response->headers->remove('cache-control');
             $this->addLinkHeaders($response, $linkHeaders);
             $response->sendHeaders(103);
 
