@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace JustBetter\Http3EarlyHints\Data;
 
@@ -30,7 +30,7 @@ class LinkHeaders
         return $this;
     }
 
-    public function addLink(EvolvableLinkInterface|string|array $uri, string|array|null $rel = null, ?array $attributes = []): static
+    public function addLink(EvolvableLinkInterface|string|array $uri, string|array|null $rel = null, array $attributes = []): static
     {
         if (is_array($uri)) {
             foreach ($uri as $data) {
@@ -71,23 +71,23 @@ class LinkHeaders
 
     public function addFromString(string $link): static
     {
-        $links = explode(',', trim($link));
-        foreach ($links as $link) {
-            $parts = explode('; ', trim($link));
+        $explodedLinks = explode(',', trim($link));
+        foreach ($explodedLinks as $explodedLink) {
+            $parts = explode('; ', trim($explodedLink));
             $uri = trim(array_shift($parts), '<>');
             $rel = null;
             $attributes = [];
             foreach ($parts as $part) {
                 preg_match('/(?<key>[^=]+)(?:="?(?<value>.*)"?)?/', trim($part), $matches);
                 $key = $matches['key'];
-                $value = $matches['value'] ?? null;
+                $value = $matches['value'] ?? '1';
 
                 if ($key === 'rel') {
                     $rel = $value;
 
                     continue;
                 }
-                $attributes[$key] = $value ?? true;
+                $attributes[$key] = $value;
             }
 
             $this->addLink($uri, $rel, $attributes);
@@ -96,14 +96,14 @@ class LinkHeaders
         return $this;
     }
 
-    public function makeUnique()
+    public function makeUnique(): static
     {
         $handledHashes = [];
 
         foreach ($this->getLinkProvider()->getLinks() as $link) {
             /** @var Link $link */
-            $hash = md5($link->getHref(), serialize($link->getRels()));
-            if (! in_array($hash, $handledHashes)) {
+            $hash = md5($link->getHref(), true); // Previous the second parameter was: serialize($link->getRels()) which gives a string, where the second parameter excepts a boolean.
+            if (!in_array($hash, $handledHashes, true)) {
                 $handledHashes[] = $hash;
 
                 continue;
@@ -115,18 +115,18 @@ class LinkHeaders
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return trim(collect($this->getLinkProvider()->getLinks())
-            ->map([static::class, 'linkToString'])
+            ->map([self::class, 'linkToString'])
             ->filter()
             ->implode(','));
     }
 
-    public static function linkToString(LinkInterface $link)
+    public static function linkToString(LinkInterface $link): ?string
     {
         if ($link->isTemplated()) {
-            return;
+            return null;
         }
 
         $attributes = ['', sprintf('rel="%s"', implode(' ', $link->getRels()))];
@@ -140,7 +140,7 @@ class LinkHeaders
                 continue;
             }
 
-            if (! \is_bool($value)) {
+            if (!\is_bool($value)) {
                 $attributes[] = sprintf('%s="%s"', $key, $value);
 
                 continue;

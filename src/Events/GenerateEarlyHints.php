@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace JustBetter\Http3EarlyHints\Events;
 

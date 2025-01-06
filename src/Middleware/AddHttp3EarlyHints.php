@@ -1,4 +1,4 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace JustBetter\Http3EarlyHints\Middleware;
 
@@ -26,7 +26,10 @@ class AddHttp3EarlyHints
         $lastPath = Str::afterLast($request->path(), '/');
         if (
             $request->format() !== 'html'
-            || (str_contains($lastPath, '.') && ! in_array(Str::afterLast($lastPath, '.'), config('http3earlyhints.extensions', ['', 'php', 'html'])))
+            || (
+                str_contains($lastPath, '.')
+                && !in_array(Str::afterLast($lastPath, '.'), config('http3earlyhints.extensions', ['', 'php', 'html']), true)
+            )
         ) {
             $this->skipCurrentRequest = true;
 
@@ -84,15 +87,15 @@ class AddHttp3EarlyHints
         $this->handleGeneratingLinkHeaders($request, $response);
     }
 
-    public function handleGeneratingLinkHeaders(Request $request, SymfonyResponse $response)
+    public function handleGeneratingLinkHeaders(Request $request, SymfonyResponse $response): ?LinkHeaders
     {
         if (
-            ! $response instanceof Response
+            $this->skipCurrentRequest
+            || !$response instanceof Response
             || $response->isRedirection()
-            || ! $response->isSuccessful()
-            || $this->skipCurrentRequest
+            || !$response->isSuccessful()
         ) {
-            return;
+            return null;
         }
         $linkHeaders = $this->generateLinkHeaders($request, $response, $this->sizeLimit);
 
@@ -112,7 +115,7 @@ class AddHttp3EarlyHints
 
         $this->linkHeaders->makeUnique();
 
-        $sizeLimit = $sizeLimit ?? max(1, intval(config('http3earlyhints.size_limit', 32 * 1024)));
+        $sizeLimit = $sizeLimit ?? max(1, (int)config('http3earlyhints.size_limit', 32 * 1024));
         $headersText = $this->linkHeaders->__toString();
 
         while (strlen($headersText) > $sizeLimit) {
@@ -126,18 +129,17 @@ class AddHttp3EarlyHints
     /**
      * Add Link Header
      */
-    private function addLinkHeaders(SymfonyResponse $response, LinkHeaders $linkHeaders): SymfonyResponse
+    private function addLinkHeaders(SymfonyResponse $response, LinkHeaders $linkHeaders): void
     {
         $link = $linkHeaders->__toString();
-        if (! $link || ! $response instanceof Response) {
-            return $response;
+        if (!$link || !$response instanceof Response) {
+            return;
         }
+
         if ($response->headers->get('Link')) {
             $link = $response->headers->get('Link').','.$link;
         }
 
         $response->header('Link', $link);
-
-        return $response;
     }
 }
