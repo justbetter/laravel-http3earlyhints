@@ -206,7 +206,7 @@ class AddHttp3EarlyHintsTest extends TestCase
 
     protected function getNext(string $pageName): Closure
     {
-        return static fn ($request) => new Response(
+        return fn ($request) => new Response(
             content: $this->getHtml($pageName),
         );
     }
