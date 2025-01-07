@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace JustBetter\Http3EarlyHints\Data;
 
@@ -80,14 +82,14 @@ class LinkHeaders
             foreach ($parts as $part) {
                 preg_match('/(?<key>[^=]+)(?:="?(?<value>.*)"?)?/', trim($part), $matches);
                 $key = $matches['key'];
-                $value = $matches['value'] ?? '1';
+                $value = $matches['value'] ?? null;
 
                 if ($key === 'rel') {
                     $rel = $value;
 
                     continue;
                 }
-                $attributes[$key] = $value;
+                $attributes[$key] = $value ?? true;
             }
 
             $this->addLink($uri, $rel, $attributes);
@@ -102,8 +104,8 @@ class LinkHeaders
 
         foreach ($this->getLinkProvider()->getLinks() as $link) {
             /** @var Link $link */
-            $hash = md5($link->getHref(), true); // Previous the second parameter was: serialize($link->getRels()) which gives a string, where the second parameter excepts a boolean.
-            if (!in_array($hash, $handledHashes, true)) {
+            $hash = md5($link->getHref().serialize($link->getRels()));
+            if (! in_array($hash, $handledHashes, true)) {
                 $handledHashes[] = $hash;
 
                 continue;
@@ -118,7 +120,7 @@ class LinkHeaders
     public function __toString(): string
     {
         return trim(collect($this->getLinkProvider()->getLinks())
-            ->map([self::class, 'linkToString'])
+            ->map([static::class, 'linkToString'])
             ->filter()
             ->implode(','));
     }
@@ -140,7 +142,7 @@ class LinkHeaders
                 continue;
             }
 
-            if (!\is_bool($value)) {
+            if (! \is_bool($value)) {
                 $attributes[] = sprintf('%s="%s"', $key, $value);
 
                 continue;

@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace JustBetter\Http3EarlyHints\Middleware;
 
@@ -28,7 +30,7 @@ class AddHttp3EarlyHints
             $request->format() !== 'html'
             || (
                 str_contains($lastPath, '.')
-                && !in_array(Str::afterLast($lastPath, '.'), config('http3earlyhints.extensions', ['', 'php', 'html']), true)
+                && ! in_array(Str::afterLast($lastPath, '.'), config('http3earlyhints.extensions', ['', 'php', 'html']), true)
             )
         ) {
             $this->skipCurrentRequest = true;
@@ -91,9 +93,9 @@ class AddHttp3EarlyHints
     {
         if (
             $this->skipCurrentRequest
-            || !$response instanceof Response
+            || ! $response instanceof Response
             || $response->isRedirection()
-            || !$response->isSuccessful()
+            || ! $response->isSuccessful()
         ) {
             return null;
         }
@@ -115,7 +117,7 @@ class AddHttp3EarlyHints
 
         $this->linkHeaders->makeUnique();
 
-        $sizeLimit = $sizeLimit ?? max(1, (int)config('http3earlyhints.size_limit', 32 * 1024));
+        $sizeLimit = $sizeLimit ?? max(1, (int) config('http3earlyhints.size_limit', 32 * 1024));
         $headersText = $this->linkHeaders->__toString();
 
         while (strlen($headersText) > $sizeLimit) {
@@ -132,7 +134,7 @@ class AddHttp3EarlyHints
     private function addLinkHeaders(SymfonyResponse $response, LinkHeaders $linkHeaders): void
     {
         $link = $linkHeaders->__toString();
-        if (!$link || !$response instanceof Response) {
+        if (! $link || ! $response instanceof Response) {
             return;
         }
 
