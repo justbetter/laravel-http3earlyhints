@@ -1,8 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JustBetter\Http3EarlyHints\Tests;
 
+use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use JustBetter\Http3EarlyHints\Middleware\AddHttp3EarlyHints;
 
@@ -16,13 +20,13 @@ class AddHttp3EarlyHintsTest extends TestCase
         parent::setUp();
     }
 
-    public function getNewRequest()
+    public function getNewRequest(): Request
     {
         return new Request(server: $_SERVER);
     }
 
     /** @test */
-    public function it_will_not_exceed_size_limit()
+    public function it_will_not_exceed_size_limit(): void
     {
         $request = $this->getNewRequest();
 
@@ -35,7 +39,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_not_add_excluded_asset()
+    public function it_will_not_add_excluded_asset(): void
     {
         $request = $this->getNewRequest();
         config(['http3earlyhints' => ['exclude_keywords' => ['thing']]]);
@@ -47,7 +51,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_not_modify_a_response_with_no_server_push_assets()
+    public function it_will_not_modify_a_response_with_no_server_push_assets(): void
     {
         $request = $this->getNewRequest();
 
@@ -57,7 +61,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_a_css_link_header_for_css()
+    public function it_will_return_a_css_link_header_for_css(): void
     {
         $request = $this->getNewRequest();
 
@@ -68,7 +72,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_a_js_link_header_for_js()
+    public function it_will_return_a_js_link_header_for_js(): void
     {
         $request = $this->getNewRequest();
 
@@ -79,7 +83,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_a_js_link_header_with_crossorigin_for_js_module()
+    public function it_will_return_a_js_link_header_with_crossorigin_for_js_module(): void
     {
         $request = $this->getNewRequest();
 
@@ -91,7 +95,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_a_js_link_header_with_use_credentials_crossorigin_for_js_module()
+    public function it_will_return_a_js_link_header_with_use_credentials_crossorigin_for_js_module(): void
     {
         $request = $this->getNewRequest();
 
@@ -103,7 +107,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_an_image_link_header_for_images()
+    public function it_will_return_an_image_link_header_for_images(): void
     {
         $request = $this->getNewRequest();
 
@@ -115,7 +119,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_an_image_link_header_for_svg_objects()
+    public function it_will_return_an_image_link_header_for_svg_objects(): void
     {
         $request = $this->getNewRequest();
 
@@ -127,7 +131,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_a_fetch_link_header_for_fetch()
+    public function it_will_return_a_fetch_link_header_for_fetch(): void
     {
         $request = $this->getNewRequest();
 
@@ -139,7 +143,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_returns_well_formatted_link_headers()
+    public function it_returns_well_formatted_link_headers(): void
     {
         $request = $this->getNewRequest();
 
@@ -149,7 +153,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_return_correct_push_headers_for_multiple_assets()
+    public function it_will_return_correct_push_headers_for_multiple_assets(): void
     {
         $request = $this->getNewRequest();
 
@@ -162,7 +166,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_not_return_a_push_header_for_inline_js()
+    public function it_will_not_return_a_push_header_for_inline_js(): void
     {
         $request = $this->getNewRequest();
 
@@ -172,7 +176,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_not_return_a_push_header_for_icons()
+    public function it_will_not_return_a_push_header_for_icons(): void
     {
         $request = $this->getNewRequest();
 
@@ -182,7 +186,7 @@ class AddHttp3EarlyHintsTest extends TestCase
     }
 
     /** @test */
-    public function it_will_append_to_header_if_already_present()
+    public function it_will_append_to_header_if_already_present(): void
     {
         $request = $this->getNewRequest();
 
@@ -200,28 +204,18 @@ class AddHttp3EarlyHintsTest extends TestCase
         $this->assertStringEndsWith('as="style"', $response->headers->get('link'));
     }
 
-    /**
-     * @param  string  $pageName
-     * @return \Closure
-     */
-    protected function getNext($pageName)
+    protected function getNext(string $pageName): Closure
     {
-        $html = $this->getHtml($pageName);
-
-        $response = (new \Illuminate\Http\Response($html));
-
-        return function ($request) use ($response) {
-            return $response;
-        };
+        return fn ($request) => new Response(
+            content: $this->getHtml($pageName),
+        );
     }
 
-    /**
-     * @param  string  $pageName
-     * @return string
-     */
-    protected function getHtml($pageName)
+    protected function getHtml(string $pageName): string
     {
-        return file_get_contents(__DIR__."/fixtures/{$pageName}.html");
+        return file_get_contents(
+            filename: __DIR__."/fixtures/{$pageName}.html",
+        );
     }
 
     private function isServerPushResponse($response)

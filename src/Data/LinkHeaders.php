@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JustBetter\Http3EarlyHints\Data;
 
 use Fig\Link\GenericLinkProvider;
@@ -30,7 +32,7 @@ class LinkHeaders
         return $this;
     }
 
-    public function addLink(EvolvableLinkInterface|string|array $uri, string|array|null $rel = null, ?array $attributes = []): static
+    public function addLink(EvolvableLinkInterface|string|array $uri, string|array|null $rel = null, array $attributes = []): static
     {
         if (is_array($uri)) {
             foreach ($uri as $data) {
@@ -71,9 +73,9 @@ class LinkHeaders
 
     public function addFromString(string $link): static
     {
-        $links = explode(',', trim($link));
-        foreach ($links as $link) {
-            $parts = explode('; ', trim($link));
+        $explodedLinks = explode(',', trim($link));
+        foreach ($explodedLinks as $explodedLink) {
+            $parts = explode('; ', trim($explodedLink));
             $uri = trim(array_shift($parts), '<>');
             $rel = null;
             $attributes = [];
@@ -96,14 +98,14 @@ class LinkHeaders
         return $this;
     }
 
-    public function makeUnique()
+    public function makeUnique(): static
     {
         $handledHashes = [];
 
         foreach ($this->getLinkProvider()->getLinks() as $link) {
             /** @var Link $link */
-            $hash = md5($link->getHref(), serialize($link->getRels()));
-            if (! in_array($hash, $handledHashes)) {
+            $hash = md5($link->getHref().serialize($link->getRels()));
+            if (! in_array($hash, $handledHashes, true)) {
                 $handledHashes[] = $hash;
 
                 continue;
@@ -115,7 +117,7 @@ class LinkHeaders
         return $this;
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return trim(collect($this->getLinkProvider()->getLinks())
             ->map([static::class, 'linkToString'])
@@ -123,10 +125,10 @@ class LinkHeaders
             ->implode(','));
     }
 
-    public static function linkToString(LinkInterface $link)
+    public static function linkToString(LinkInterface $link): ?string
     {
         if ($link->isTemplated()) {
-            return;
+            return null;
         }
 
         $attributes = ['', sprintf('rel="%s"', implode(' ', $link->getRels()))];

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     /**
      * This works by building a cache of links after the first request, how long should we keep them for in seconds?
