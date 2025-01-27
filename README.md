@@ -98,6 +98,14 @@ So we will not preload these images.
 
 If your html object tag contains `data=""` it will preload it.
 
+##### Nonce
+
+While the early hints module does support sending [nonce](https://laravel.com/docs/11.x/vite#content-security-policy-csp-nonce) across as well, we recommend against it. And use [integrity](https://laravel.com/docs/11.x/vite#subresource-integrity-sri) instead.
+
+Without hardcoding the nonce
+[Vite::useCspNonce($nonce);](https://laravel.com/docs/11.x/vite#content-security-policy-csp-nonce:~:text=Vite%3A%3AuseCspNonce(%24nonce)%3B)
+sending this in early hints will be useless as each request will send early hints with a stale nonce.
+
 ## Testing
 
 ``` bash

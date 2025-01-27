@@ -21,7 +21,7 @@ class AddFromBody
         $excludeKeywords = array_filter(config('http3earlyhints.exclude_keywords', []));
         $headers = $this->fetchLinkableNodes($event->response)
             ->flatMap(function ($element) {
-                [$src, $href, $data, $rel, $type, $crossorigin, $as, $fetchpriority, $integrity, $referrerpolicy, $imagesizes, $imagesrcset] = $element;
+                [$src, $href, $data, $rel, $type, $crossorigin, $as, $fetchpriority, $integrity, $nonce, $referrerpolicy] = $element;
                 $rel = $type === 'module' ? 'modulepreload' : $rel;
 
                 if ($rel === 'modulepreload' && empty($crossorigin)) {
@@ -29,7 +29,7 @@ class AddFromBody
                     $crossorigin = 'anonymous';
                 }
 
-                $attributes = array_filter(@compact('crossorigin', 'as', 'fetchpriority', 'integrity', 'referrerpolicy', 'imagesizes', 'imagesrcset'));
+                $attributes = array_filter(@compact('crossorigin', 'as', 'fetchpriority', 'integrity', 'nonce', 'referrerpolicy'));
 
                 return [
                     $this->buildLinkHeader($href ?? '', $rel ?? null, $attributes),
@@ -71,7 +71,7 @@ class AddFromBody
 
         return collect(
             $crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')
-                ->extract(['src', 'href', 'data', 'rel', 'type', 'crossorigin', 'as', 'fetchpriority', 'integrity', 'referrerpolicy', 'imagesizes', 'imagesrcset'])
+                ->extract(['src', 'href', 'data', 'rel', 'type', 'crossorigin', 'as', 'fetchpriority', 'integrity', 'nonce', 'referrerpolicy'])
         );
     }
 
