@@ -7,6 +7,7 @@ namespace JustBetter\Http3EarlyHints\Data;
 use Fig\Link\GenericLinkProvider;
 use Fig\Link\Link;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Psr\Link\EvolvableLinkInterface;
 use Psr\Link\EvolvableLinkProviderInterface;
 use Psr\Link\LinkInterface;
@@ -130,7 +131,7 @@ class LinkHeaders implements Stringable
 
     public function __toString(): string
     {
-        return trim(collect($this->getLinkProvider()->getLinks())
+        return trim(new Collection($this->getLinkProvider()->getLinks())
             ->map([static::class, 'linkToString'])
             ->filter()
             ->implode(','));
