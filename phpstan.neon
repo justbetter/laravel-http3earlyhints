@@ -1,10 +1,13 @@
 includes:
-    - ./vendor/larastan/larastan/extension.neon
+    - ./vendor/justbetter/laravel-coding-standard/phpstan.neon
     - ./vendor/phpstan/phpstan-mockery/extension.neon
 
 parameters:
     paths:
         - src
         - tests
-    level: 4
-    checkMissingIterableValueType: false
+    ignoreErrors:
+        -
+            identifier: larastan.noEnvCallsOutsideOfConfig
+            path: src/config.php
+    level: 7

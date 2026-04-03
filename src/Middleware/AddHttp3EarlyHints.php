@@ -17,7 +17,7 @@ use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 
 class AddHttp3EarlyHints
 {
-    protected ?LinkHeaders $linkHeaders;
+    protected ?LinkHeaders $linkHeaders = null;
 
     protected bool $skipCurrentRequest = false;
 
@@ -46,8 +46,9 @@ class AddHttp3EarlyHints
             if (! config('http3earlyhints.generate_during_request', true)) {
                 return $response;
             }
+
             $linkHeaders = $this->handleGeneratingLinkHeaders($request, $response);
-            if ($linkHeaders) {
+            if ($linkHeaders instanceof LinkHeaders) {
                 $this->addLinkHeaders($response, $linkHeaders);
             }
 
@@ -99,6 +100,7 @@ class AddHttp3EarlyHints
         ) {
             return null;
         }
+
         $linkHeaders = $this->generateLinkHeaders($request, $response, $this->sizeLimit);
 
         Cache::store(config('http3earlyhints.cache_driver'))->put(
@@ -117,7 +119,7 @@ class AddHttp3EarlyHints
 
         $this->linkHeaders->makeUnique();
 
-        $sizeLimit = $sizeLimit ?? max(1, (int) config('http3earlyhints.size_limit', 32 * 1024));
+        $sizeLimit ??= max(1, (int) config('http3earlyhints.size_limit', 32 * 1024));
         $headersText = $this->linkHeaders->__toString();
 
         while (strlen($headersText) > $sizeLimit) {

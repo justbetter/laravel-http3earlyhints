@@ -7,11 +7,13 @@ namespace JustBetter\Http3EarlyHints\Data;
 use Fig\Link\GenericLinkProvider;
 use Fig\Link\Link;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Psr\Link\EvolvableLinkInterface;
 use Psr\Link\EvolvableLinkProviderInterface;
 use Psr\Link\LinkInterface;
+use Stringable;
 
-class LinkHeaders
+class LinkHeaders implements Stringable
 {
     private EvolvableLinkProviderInterface $linkProvider;
 
@@ -32,7 +34,11 @@ class LinkHeaders
         return $this;
     }
 
-    public function addLink(EvolvableLinkInterface|string|array $uri, string|array|null $rel = null, array $attributes = []): static
+    /**
+     * @param  null|string|array<string>  $rel
+     * @param  array<string,string|Stringable|int|float|bool|array>  $attributes  // @phpstan-ignore missingType.iterableValue
+     */
+    public function addLink(EvolvableLinkInterface|string|array $uri, null|string|array $rel = null, array $attributes = []): static // @phpstan-ignore missingType.iterableValue
     {
         if (is_array($uri)) {
             foreach ($uri as $data) {
@@ -52,6 +58,7 @@ class LinkHeaders
         if ($rel === null) {
             return $this;
         }
+
         $link = new Link('', $uri);
 
         if (\is_string($rel)) {
@@ -81,14 +88,19 @@ class LinkHeaders
             $attributes = [];
             foreach ($parts as $part) {
                 preg_match('/(?<key>[^=]+)(?:="?(?<value>.*)"?)?/', trim($part), $matches);
-                $key = $matches['key'];
+                $key = $matches['key'] ?? null;
                 $value = $matches['value'] ?? null;
+
+                if ($key === null) {
+                    continue;
+                }
 
                 if ($key === 'rel') {
                     $rel = $value;
 
                     continue;
                 }
+
                 $attributes[$key] = $value ?? true;
             }
 
@@ -119,7 +131,7 @@ class LinkHeaders
 
     public function __toString(): string
     {
-        return trim(collect($this->getLinkProvider()->getLinks())
+        return trim(new Collection($this->getLinkProvider()->getLinks())
             ->map([static::class, 'linkToString'])
             ->filter()
             ->implode(','));
@@ -148,7 +160,7 @@ class LinkHeaders
                 continue;
             }
 
-            if ($value === true) {
+            if ($value) {
                 $attributes[] = $key;
             }
         }

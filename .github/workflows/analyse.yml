@@ -1,4 +1,4 @@
-name: PHPStan
+name: analyse
 
 on:
   push:
@@ -9,21 +9,38 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    name: analyse
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ubuntu-latest]
+        php: [8.3, 8.4, 8.5]
+        laravel: [11.*, 12.*, 13.*]
+        stability: [prefer-stable]
+        include:
+          - laravel: 11.*
+            testbench: 9.*
+          - laravel: 12.*
+            testbench: 10.*
+          - laravel: 13.*
+            testbench: 11.*
+
+    name: P${{ matrix.php }} - L${{ matrix.laravel }} - ${{ matrix.stability }} - ${{ matrix.os }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.2
+          php-version: ${{ matrix.php }}
           extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite, bcmath, soap, intl, gd, exif, iconv, imagick, fileinfo
           coverage: none
 
       - name: Install dependencies
-        run: composer install --no-interaction
+        run: |
+          composer require "laravel/framework:${{ matrix.laravel }}" "orchestra/testbench:${{ matrix.testbench }}" --no-interaction --no-update
+          composer update --${{ matrix.stability }} --prefer-dist --no-interaction
 
-      - name: Analyse
-        run: composer run analyse
+      - name: Execute phpstan
+        run: php ./vendor/bin/phpstan --memory-limit=1G

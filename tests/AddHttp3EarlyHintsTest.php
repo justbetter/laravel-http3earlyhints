@@ -206,7 +206,7 @@ class AddHttp3EarlyHintsTest extends TestCase
 
     protected function getNext(string $pageName): Closure
     {
-        return fn ($request) => new Response(
+        return fn ($request): Response => new Response(
             content: $this->getHtml($pageName),
         );
     }
@@ -215,10 +215,10 @@ class AddHttp3EarlyHintsTest extends TestCase
     {
         return file_get_contents(
             filename: __DIR__."/fixtures/{$pageName}.html",
-        );
+        ) ?: '';
     }
 
-    private function isServerPushResponse($response)
+    private function isServerPushResponse(Response $response): bool
     {
         return $response->headers->has('Link');
     }
