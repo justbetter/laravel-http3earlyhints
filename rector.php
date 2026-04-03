@@ -8,13 +8,15 @@ use Rector\Configuration\RectorConfigBuilder;
 $rectorConfig = require 'vendor/justbetter/laravel-coding-standard/rector.php';
 
 $rectorConfig->withPaths([
-    __DIR__ . '/src',
-    __DIR__ . '/tests',
+    __DIR__.'/src',
+    __DIR__.'/tests',
 ]);
 
 /** Define additional rules here
  * @see: https://getrector.com/find-rule?activeRectorSetGroup=laravel
+ *
  * @see: https://getrector.com/find-rule?activeRectorSetGroup=php
+ *
  * @see: https://getrector.com/find-rule?activeRectorSetGroup=core
  */
 $rectorConfig->withPreparedSets(

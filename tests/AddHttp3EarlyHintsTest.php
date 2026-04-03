@@ -218,7 +218,7 @@ class AddHttp3EarlyHintsTest extends TestCase
         ) ?: '';
     }
 
-    private function isServerPushResponse(Request $response): bool
+    private function isServerPushResponse(Response $response): bool
     {
         return $response->headers->has('Link');
     }

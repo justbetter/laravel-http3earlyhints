@@ -9,6 +9,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Str;
 use JustBetter\Http3EarlyHints\Events\GenerateEarlyHints;
+use Stringable;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -24,7 +25,7 @@ class AddFromBody
                 [$src, $href, $data, $rel, $type, $crossorigin, $as, $fetchpriority, $integrity, $nonce, $referrerpolicy] = $element;
                 $rel = $type === 'module' ? 'modulepreload' : $rel;
 
-                if ($rel === 'modulepreload' && empty($crossorigin)) {
+                if ($rel === 'modulepreload' && in_array($crossorigin, [null, ''], true)) {
                     // On module or modulepreload the crossorigin is REQUIRED https://github.com/whatwg/html/issues/1888
                     $crossorigin = 'anonymous';
                 }
@@ -35,7 +36,7 @@ class AddFromBody
                     'fetchpriority' => $fetchpriority,
                     'integrity' => $integrity,
                     'nonce' => $nonce,
-                    'referrerpolicy' => $referrerpolicy
+                    'referrerpolicy' => $referrerpolicy,
                 ]);
 
                 return [
@@ -45,7 +46,7 @@ class AddFromBody
                 ];
             })
             ->filter(function (?Link $value) use ($excludeKeywords): bool {
-                if (!$value instanceof Link) {
+                if (! $value instanceof Link) {
                     return false;
                 }
 
@@ -88,7 +89,7 @@ class AddFromBody
     /**
      * Build out header string based on asset extension.
      *
-     * @param array<string,string|\Stringable|int|float|bool|array> $attributes
+     * @param  array<string,string|Stringable|int|float|bool|array>  $attributes
      */
     private function buildLinkHeader(string $url, ?string $rel = 'preload', ?array $attributes = []): ?Link // @phpstan-ignore missingType.iterableValue
     {

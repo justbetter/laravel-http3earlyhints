@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace JustBetter\Http3EarlyHints\Data;
 
-use Stringable;
 use Fig\Link\GenericLinkProvider;
 use Fig\Link\Link;
 use Illuminate\Support\Arr;
 use Psr\Link\EvolvableLinkInterface;
 use Psr\Link\EvolvableLinkProviderInterface;
 use Psr\Link\LinkInterface;
+use Stringable;
 
 class LinkHeaders implements Stringable
 {
@@ -34,8 +34,8 @@ class LinkHeaders implements Stringable
     }
 
     /**
-     * @param null|string|array<string> $rel
-     * @param array<string,string|\Stringable|int|float|bool|array> $attributes // @phpstan-ignore missingType.iterableValue
+     * @param  null|string|array<string>  $rel
+     * @param  array<string,string|Stringable|int|float|bool|array>  $attributes  // @phpstan-ignore missingType.iterableValue
      */
     public function addLink(EvolvableLinkInterface|string|array $uri, null|string|array $rel = null, array $attributes = []): static // @phpstan-ignore missingType.iterableValue
     {
