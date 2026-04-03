@@ -81,7 +81,7 @@ class AddFromBody
         $crawler = $this->getCrawler($response);
 
         return collect(
-            $crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="home"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')
+            $crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="home"]):not([rel="author"]):not([rel="help"]):not([rel="license"]):not([rel="privacy-policy"]):not([rel="terms-of-service"]):not([rel="search"]):not([rel="me"]):not([rel="prev"]):not([rel="next"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')
                 ->extract(['src', 'href', 'data', 'rel', 'type', 'crossorigin', 'as', 'fetchpriority', 'integrity', 'nonce', 'referrerpolicy'])
         );
     }
