@@ -14,13 +14,13 @@ use Symfony\Component\HttpFoundation\Response;
 
 class AddFromBody
 {
-    protected ?Crawler $crawler;
+    protected ?Crawler $crawler = null;
 
-    public function handle(GenerateEarlyHints $event)
+    public function handle(GenerateEarlyHints $event): void
     {
         $excludeKeywords = array_filter(config('http3earlyhints.exclude_keywords', []));
         $headers = $this->fetchLinkableNodes($event->response)
-            ->flatMap(function ($element) {
+            ->flatMap(function ($element): array {
                 [$src, $href, $data, $rel, $type, $crossorigin, $as, $fetchpriority, $integrity, $nonce, $referrerpolicy] = $element;
                 $rel = $type === 'module' ? 'modulepreload' : $rel;
 
@@ -29,7 +29,14 @@ class AddFromBody
                     $crossorigin = 'anonymous';
                 }
 
-                $attributes = array_filter(@compact('crossorigin', 'as', 'fetchpriority', 'integrity', 'nonce', 'referrerpolicy'));
+                $attributes = array_filter([
+                    'crossorigin' => $crossorigin,
+                    'as' => $as,
+                    'fetchpriority' => $fetchpriority,
+                    'integrity' => $integrity,
+                    'nonce' => $nonce,
+                    'referrerpolicy' => $referrerpolicy
+                ]);
 
                 return [
                     $this->buildLinkHeader($href ?? '', $rel ?? null, $attributes),
@@ -37,11 +44,12 @@ class AddFromBody
                     $this->buildLinkHeader($data ?? '', $rel ?? null, $attributes),
                 ];
             })
-            ->filter(function (?Link $value) use ($excludeKeywords) {
-                if (! $value) {
+            ->filter(function (?Link $value) use ($excludeKeywords): bool {
+                if (!$value instanceof Link) {
                     return false;
                 }
-                $exclude_keywords = collect($excludeKeywords)->map(function ($keyword) {
+
+                $exclude_keywords = collect($excludeKeywords)->map(function ($keyword): string {
                     return preg_quote($keyword);
                 });
                 if ($exclude_keywords->count() <= 0) {
@@ -59,26 +67,30 @@ class AddFromBody
      */
     protected function getCrawler(Response $response): Crawler
     {
-        return $this->crawler ??= new Crawler($response->getContent());
+        return $this->crawler ??= new Crawler($response->getContent() ?: '');
     }
 
     /**
      * Get all nodes we are interested in pushing.
+     *
+     * @return Collection<int,array<int,?string>>
      */
     protected function fetchLinkableNodes(Response $response): Collection
     {
         $crawler = $this->getCrawler($response);
 
         return collect(
-            $crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')
+            $crawler->filter('link:not([rel*="icon"]):not([rel="canonical"]):not([rel="home"]):not([rel="manifest"]):not([rel="alternate"]), script[src]:not([defer]):not([async]), *:not(picture)>img[src]:not([loading="lazy"]), object[data]')
                 ->extract(['src', 'href', 'data', 'rel', 'type', 'crossorigin', 'as', 'fetchpriority', 'integrity', 'nonce', 'referrerpolicy'])
         );
     }
 
     /**
      * Build out header string based on asset extension.
+     *
+     * @param array<string,string|\Stringable|int|float|bool|array> $attributes
      */
-    private function buildLinkHeader(string $url, ?string $rel = 'preload', ?array $attributes = []): ?Link
+    private function buildLinkHeader(string $url, ?string $rel = 'preload', ?array $attributes = []): ?Link // @phpstan-ignore missingType.iterableValue
     {
         $linkTypeMap = [
             '.CSS' => 'style',
@@ -95,7 +107,7 @@ class AddFromBody
             '.WOFF2' => 'font',
         ];
 
-        if (! $url) {
+        if ($url === '') {
             return null;
         }
 
@@ -108,7 +120,7 @@ class AddFromBody
             $url = rtrim($basePath.ltrim($url, $basePath), '/');
         }
 
-        if (! in_array($rel, ['preload', 'preconnect'])) {
+        if (! in_array($rel, ['preload', 'preconnect'], true)) {
             $rel = 'preload';
         }
 
@@ -125,14 +137,15 @@ class AddFromBody
         if (empty($attributes['as'])) {
             $link = $link->withAttribute('as', $type ?? 'fetch');
         }
+
         if ($type === 'font' && empty($attributes['crossorigin'])) {
-            $link = $link->withAttribute('crossorigin', 'anonymous');
+            return $link->withAttribute('crossorigin', 'anonymous');
         }
 
         return $link;
     }
 
-    public static function register()
+    public static function register(): void
     {
         Event::listen(GenerateEarlyHints::class, static::class);
     }

@@ -21,7 +21,7 @@ return [
     'base_path' => env('EARLY_HINTS_BASE_PATH', '/'),
     /** List of file extensions to return and generate early hints for */
     'extensions' => array_merge(
-        explode(',', env('EARLY_HINTS_EXTENSIONS', '')),
+        explode(',', (string) env('EARLY_HINTS_EXTENSIONS', '')),
         [
             'php',
             'html',
@@ -30,11 +30,11 @@ return [
     ),
     /** Keywords that if they exist in the url will exclude link header */
     'exclude_keywords' => array_merge(
-        explode(',', env('EARLY_HINTS_EXCLUDE_KEYWORDS', '')),
+        explode(',', (string) env('EARLY_HINTS_EXCLUDE_KEYWORDS', '')),
         []
     ),
     'default_headers' => array_merge(
-        explode(',', env('EARLY_HINTS_DEFAULT_HEADERS', '')),
+        explode(',', (string) env('EARLY_HINTS_DEFAULT_HEADERS', '')),
         [
             // '</styles/style.css>; rel=preload; as=style',
         ]
