@@ -131,7 +131,7 @@ class LinkHeaders implements Stringable
 
     public function __toString(): string
     {
-        return trim(new Collection($this->getLinkProvider()->getLinks())
+        return trim((new Collection($this->getLinkProvider()->getLinks()))
             ->map([static::class, 'linkToString'])
             ->filter()
             ->implode(','));
