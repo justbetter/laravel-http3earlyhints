@@ -40,8 +40,9 @@ class AddHttp3EarlyHints
 
         $this->sizeLimit = $sizeLimit;
 
-        $linkHeaders = Cache::store(config('http3earlyhints.cache_driver'))->get('earlyhints-'.md5($request->url()));
-        if (! $linkHeaders) {
+        /** @var ?array<string|int, array{uri: string, rel: string[], attributes: array<string, string|\Stringable|int|float|bool|array<mixed, mixed>>}> $linkHeadersArray */
+        $linkHeadersArray = Cache::store(config('http3earlyhints.cache_driver'))->get('earlyhints-'.md5($request->url()));
+        if (! $linkHeadersArray) {
             $response = $next($request);
             if (! config('http3earlyhints.generate_during_request', true)) {
                 return $response;
@@ -53,6 +54,11 @@ class AddHttp3EarlyHints
             }
 
             return $response;
+        } else {
+            $linkHeaders = new LinkHeaders;
+            foreach ($linkHeadersArray as $data) {
+                $linkHeaders->addLink(...$data);
+            }
         }
 
         if (config('http3earlyhints.send_103')) {
@@ -105,7 +111,10 @@ class AddHttp3EarlyHints
 
         Cache::store(config('http3earlyhints.cache_driver'))->put(
             'earlyhints-'.md5($request->url()),
-            $linkHeaders,
+            array_map(
+                fn ($link) => ['uri' => $link->getHref(), 'rel' => $link->getRels(), 'attributes' => $link->getAttributes()],
+                array_values(iterator_to_array($linkHeaders->getLinkProvider()->getLinks()))
+            ),
             config('http3earlyhints.cache_duration', 864000)
         );
 
